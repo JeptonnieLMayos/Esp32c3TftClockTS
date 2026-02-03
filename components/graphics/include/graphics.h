@@ -1,4 +1,4 @@
 #include <stdint.h>
 #include "backlight.h"
 
-void draw(void);
+void graphics_init(void);

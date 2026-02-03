@@ -3,6 +3,7 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "graphics.h"
+#include "touch.h"
 
 #define PIN_SCLK 4
 #define PIN_MISO 5
@@ -20,10 +21,26 @@ void init(void)
     };
     spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO);
 
+    graphics_init();
+    touch_init();
 }
 
 void app_main(void)
 {
-    draw();
+    init();
     set_backlight_brightness(80);
+
+    touch_point_t tp;
+
+    if(touch_read(&tp))
+    {
+        if(tp.x < 120)
+        {
+            if(tp.y < 160)
+            {}
+            else if(tp.y > 159)
+            {}
+        }
+        
+    }
 }

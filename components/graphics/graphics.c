@@ -5,7 +5,7 @@
 #define PIN_TFT_DC 8
 #define PIN_TFT_RST 9
 
-void draw(void)
+void graphics_init(void)
 {
     backlight_init();
 }
