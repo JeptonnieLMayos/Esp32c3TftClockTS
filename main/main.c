@@ -2,8 +2,11 @@
 #include "graphics.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "graphics.h"
 #include "touch.h"
+#include "esp_log.h"
 
 #define PIN_SCLK 4
 #define PIN_MISO 5
@@ -25,22 +28,52 @@ void init(void)
     touch_init();
 }
 
+void set_bl(uint16_t y)
+{
+    uint8_t br = get_backlight_brightness();
+
+    if( y < 160)
+        --br;
+    else if( y > 159)
+        ++br;
+
+    ESP_LOGI("s", "%d", br);
+
+
+    set_backlight_brightness(br);
+
+}
+
+static void touch_task(void *arg)
+{
+    touch_point_t tp;
+
+    while(1)
+    {
+
+        if(touch_read(&tp))
+        {
+            if(tp.x < 120)
+            {
+                set_bl(tp.y);
+
+            }
+        }
+    
+
+        int delay_ms = (touch_is_pressed()) ? 50 : 1000;
+
+        vTaskDelay(pdMS_TO_TICKS(delay_ms));
+    }
+}
+
 void app_main(void)
 {
     init();
     set_backlight_brightness(80);
 
-    touch_point_t tp;
+    xTaskCreate(touch_task, "touch", 4096, NULL, 5, NULL);
 
-    if(touch_read(&tp))
-    {
-        if(tp.x < 120)
-        {
-            if(tp.y < 160)
-            {}
-            else if(tp.y > 159)
-            {}
-        }
-        
-    }
+
+
 }

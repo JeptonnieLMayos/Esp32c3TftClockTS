@@ -2,6 +2,8 @@
 #include "touch.h"
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
+#include "esp_log.h"
+
 
 #define TOUCH_IRQ_GPIO 0
 #define TOUCH_CS       20
@@ -24,7 +26,7 @@ void touch_init(void)
     gpio_config(&irq);
 
     spi_device_interface_config_t devcfg = {
-        .clock_speed_hz = 2 * 1000 * 1000,  // 2 MHz
+        .clock_speed_hz = 2 * 1000 * 1000,
         .mode = 0,
         .spics_io_num = TOUCH_CS,
         .queue_size = 1,
@@ -77,4 +79,6 @@ bool touch_read(touch_point_t *p)
 bool touch_is_pressed(void)
 {
     return gpio_get_level(TOUCH_IRQ_GPIO) == 0;
+     ESP_LOGI("t", "t");
+
 }

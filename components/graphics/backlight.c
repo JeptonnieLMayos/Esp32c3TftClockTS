@@ -39,9 +39,15 @@ void backlight_init(void)
 void set_backlight_brightness(uint8_t bl_strength)
 {
     if (bl_strength > 100) bl_strength = 100;
+    if (bl_strength < 5) bl_strength = 5;
     backlight_brightness = bl_strength;
 
-    uint32_t duty = (bl_strength * 255) / 100;
+    uint8_t duty = (bl_strength * 255) / 100;
     ledc_set_duty(BL_PWM_MODE, BL_PWM_CH, duty);
     ledc_update_duty(BL_PWM_MODE, BL_PWM_CH);
+}
+
+uint8_t get_backlight_brightness(void)
+{
+    return backlight_brightness;
 }
