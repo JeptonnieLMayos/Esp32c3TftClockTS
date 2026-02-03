@@ -1,1 +1,4 @@
-void func(void);
+#include <stdint.h>
+#include "backlight.h"
+
+void draw(void);

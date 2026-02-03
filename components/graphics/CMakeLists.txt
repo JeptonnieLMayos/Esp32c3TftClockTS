@@ -1,2 +1,5 @@
 idf_component_register(SRCS "graphics.c"
-                    INCLUDE_DIRS "include")
+                            "backlight.c"
+                    INCLUDE_DIRS "include"
+                    PRIV_REQUIRES esp_driver_ledc
+                    )
