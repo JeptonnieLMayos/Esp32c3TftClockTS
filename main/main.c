@@ -103,7 +103,7 @@ void draw_minute_markers(uint16_t col)
     
             int ix, iy, ox, oy;
     
-            get_rect_point(radians, 120, 160, 105, 145, &ix, &iy);
+            get_rect_point(radians, 120, 160, 109, 149, &ix, &iy);
             get_rect_point(radians, 120, 160, 110, 150, &ox, &oy);
     
             uint16_t *b = NULL;
@@ -141,54 +141,82 @@ void rect_clock (void *arg)
     uint8_t second = 0;
 
     float angle_per_tick = 6.0f;
+    float radians = M_PI / 180.0f;
+
+    float sec_angle = second * angle_per_tick;
+    float sec_radians = sec_angle * radians;
+    float min_angle = minute * angle_per_tick;
+    float min_radians = min_angle * radians;
+    float hour_angle = (hour * 30) + (minute * 0.5);
+    float hour_radians = hour_angle * radians;
+    
 
     uint16_t col = 0xFFFF;
 
     bool first = true;
     int spix, spiy, spox, spoy;
     int mpix, mpiy, mpox, mpoy;
+    int hpix, hpiy, hpox, hpoy;
     uint16_t *sec_b = NULL; uint16_t *prev_sec_b = NULL;
     uint16_t *min_b = NULL; uint16_t *prev_min_b = NULL;
+    uint16_t *hour_b = NULL; uint16_t *prev_hour_b = NULL;
     while(1)
     {
         if( !first )
         {
             free(sec_b); free(prev_sec_b);
             free(min_b); free(prev_min_b);
+            free(hour_b); free(prev_hour_b);
         }
 
         if ( !first )
         {
-            gfx_draw_line( spix, spiy, spox, spoy, 1, 0x0000, &prev_sec_b );
-            gfx_draw_line( mpix, mpiy, mpox, mpoy, 2, 0x0000, &prev_min_b );
+            gfx_draw_line( spix, spiy, spox, spoy, 2, 0x0000, &prev_sec_b );
+        // gfx_draw_rect(spox, spoy, spox +1, spoy +1, 0x0000, &prev_sec_b);
+
+            gfx_draw_line( mpix, mpiy, mpox, mpoy, 4, 0x0000, &prev_min_b );
+            gfx_draw_line( hpix, hpiy, hpox, hpoy, 8, 0x0000, &prev_hour_b );
         }
         else
             first = false;
 
-        float sec_angle = second * angle_per_tick;
-        float sec_radians = sec_angle * (M_PI / 180.0f);
-        float min_angle = minute * angle_per_tick;
-        float min_radians = min_angle * (M_PI / 180.0f);
+        sec_angle = second * angle_per_tick;
+        sec_radians = sec_angle * radians;
 
-        int sec_ix = 85; int sec_iy = 125; int sec_ox = 99; int sec_oy = 139;
-        int min_ix = 60; int min_iy = 100; int min_ox = 84; int min_oy = 124;
+        if (second == 0)
+        {
+            min_angle = minute * angle_per_tick;
+            min_radians = min_angle * radians;
+            hour_angle = (hour * 30) + (minute * 0.5);
+            hour_radians = hour_angle * radians;
+        }
+
+        int sec_ix = 95; int sec_iy = 135; int sec_ox = 98; int sec_oy = 138;
+        int min_ix = 85; int min_iy = 125; int min_ox = 94; int min_oy = 134;
+        int hour_ix = 70; int hour_iy = 110; int hour_ox = 84; int hour_oy = 124;
 
         int six, siy, sox, soy;
         int mix, miy, mox, moy;
+        int hix, hiy, hox, hoy;
 
         get_rect_point(sec_radians, 120, 160, sec_ix, sec_iy, &six, &siy);
         get_rect_point(sec_radians, 120, 160, sec_ox, sec_oy, &sox, &soy);
         get_rect_point(min_radians, 120, 160, min_ix, min_iy, &mix, &miy);
         get_rect_point(min_radians, 120, 160, min_ox, min_oy, &mox, &moy);
+        get_rect_point(hour_radians, 120, 160, hour_ix, hour_iy, &hix, &hiy);
+        get_rect_point(hour_radians, 120, 160, hour_ox, hour_oy, &hox, &hoy);
 
 
-        gfx_draw_line( six, siy, sox, soy, 1, col, &sec_b );
-        gfx_draw_line( mix, miy, mox, moy, 2, col, &min_b );
+        gfx_draw_line( six, siy, sox, soy, 2, col, &sec_b );
+        // gfx_draw_rect(sox, soy, sox +1, soy +1, col,  &sec_b);
+        gfx_draw_line( mix, miy, mox, moy, 4, col, &min_b );
+        gfx_draw_line( hix, hiy, hox, hoy, 8, col, &hour_b );
 
 
 
         spix = six; spiy = siy; spox = sox; spoy = soy;
         mpix = mix; mpiy = miy; mpox = mox; mpoy = moy;
+        hpix = hix; hpiy = hiy; hpox = hox; hpoy = hoy;
         vTaskDelay(pdMS_TO_TICKS(1000));
 
         if (second >= 59 )
@@ -196,6 +224,11 @@ void rect_clock (void *arg)
             minute = minute >= 60 ? 1 : minute + 1;
         }
         second = second >= 59 ? 0 : second + 1;
+        
+        if ( minute == 60 && second >= 59)
+        {
+            hour = hour <= 11 ? 0 : hour + 1;
+        }
  
     }
 
