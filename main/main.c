@@ -33,6 +33,9 @@ void init(void)
 
 // Clock
 
+volatile int adjust = 0;
+
+
 void get_rect_point(
     float radians,
     int cx, int cy,
@@ -160,6 +163,9 @@ void rect_clock (void *arg)
     uint16_t *sec_b = NULL; uint16_t *prev_sec_b = NULL;
     uint16_t *min_b = NULL; uint16_t *prev_min_b = NULL;
     uint16_t *hour_b = NULL; uint16_t *prev_hour_b = NULL;
+
+
+    // adjust 
     while(1)
     {
         if( !first )
@@ -183,7 +189,7 @@ void rect_clock (void *arg)
         sec_angle = second * angle_per_tick;
         sec_radians = sec_angle * radians;
 
-        if (second == 0)
+        if (second == 0 || adjust != 0) // adjust
         {
             min_angle = minute * angle_per_tick;
             min_radians = min_angle * radians;
@@ -217,18 +223,41 @@ void rect_clock (void *arg)
         spix = six; spiy = siy; spox = sox; spoy = soy;
         mpix = mix; mpiy = miy; mpox = mox; mpoy = moy;
         hpix = hix; hpiy = hiy; hpox = hox; hpoy = hoy;
-        vTaskDelay(pdMS_TO_TICKS(1000));
 
-        if (second >= 59 )
+        int delay = 1000;
+
+        if (adjust == 0) // adjust
         {
-            minute = minute >= 60 ? 1 : minute + 1;
+            delay = 1000;
+    
+            if (second >= 59 )
+            {
+                minute = minute >= 60 ? 1 : minute + 1; // 60 to 59
+            }
+            second = second >= 59 ? 0 : second + 1;
+            
+            if ( minute == 60 && second >= 59) // 60 to 59
+            {
+                hour = hour <= 11 ? 0 : hour + 1;
+            }
         }
-        second = second >= 59 ? 0 : second + 1;
-        
-        if ( minute == 60 && second >= 59)
+        else
         {
-            hour = hour <= 11 ? 0 : hour + 1;
+            if (adjust == 1 )
+                second = 0;
+            if (adjust == 2 )
+            {
+                minute = minute >= 59 ? 0 : minute + 1;
+                delay = 250;
+            }
+            if (adjust == 3 )
+            {
+                hour = hour >= 11 ? 0 : hour + 1;
+                delay = 350;
+            }
         }
+
+        vTaskDelay(pdMS_TO_TICKS(delay));
  
     }
 
@@ -272,9 +301,17 @@ static void touch_task(void *arg)
             }
             else if (tp.x > 119)
             {
+                if(tp.y < 100)
+                    adjust = 3;
+                else if (tp.y > 200)
+                    adjust = 1;
+                else
+                    adjust = 2;
             }
             
         }
+        else
+            adjust = 0;
     
 
         int delay_ms = (touch_is_pressed()) ? 50 : 1000;
