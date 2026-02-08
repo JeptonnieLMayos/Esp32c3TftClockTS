@@ -59,7 +59,9 @@ void graphics_init(void)
 
 void gfx_draw_rect( int x0, int y0,
                     int x1, int y1,
-                    uint16_t color)
+                    uint16_t color,
+                    uint16_t **buf
+                )
 {
     int xmin = x0 < x1 ? x0 : x1;
     int xmax = x0 > x1 ? x0 : x1;
@@ -68,20 +70,19 @@ void gfx_draw_rect( int x0, int y0,
 
 
 
-    gfx_buffer_t g;
-    g.width  = xmax - xmin + 1;
-    g.height = ymax - ymin + 1;
-    g.size = g.width * g.height * 2;
-    g.buf = malloc(g.size);
-    for (int i = 0; i < g.width * g.height; i++)
-        g.buf[i] = color;
+    size_t width  = xmax - xmin + 1;
+    size_t height = ymax - ymin + 1;
+    size_t size = width * height * 2;
+    *buf = malloc(size);
+    for (int i = 0; i < width * height; i++)
+        (*buf)[i] = color;
     
     esp_lcd_panel_draw_bitmap(
         panel,
         xmin, ymin,
-        xmin + g.width,
-        ymin + g.height,
-        g.buf
+        xmin + width,
+        ymin + height,
+        *buf
     );
     
 }   
@@ -90,7 +91,8 @@ void gfx_draw_line(
     int x0, int y0,
     int x1, int y1,
     int thickness,
-    uint16_t color
+    uint16_t color,
+    uint16_t **buf
 )
 {
     int r = thickness /2;
@@ -101,13 +103,12 @@ void gfx_draw_line(
     int ymin = y0 < y1 ? y0 : y1 - r;
     int ymax = y0 > y1 ? y0 : y1 + r;
 
-    gfx_buffer_t g;
-    g.width  = xmax - xmin + 1;
-    g.height = ymax - ymin + 1;
-    g.size = g.width * g.height * sizeof(uint16_t);
-    g.buf = malloc(g.size);
-    for (int i = 0; i < g.width * g.height; i++)
-        g.buf[i] = BLACK;
+    size_t width  = xmax - xmin + 1;
+    size_t height = ymax - ymin + 1;
+    size_t size = width * height * sizeof(uint16_t);
+    *buf = malloc(size);
+    for (int i = 0; i < width * height; i++)
+        (*buf)[i] = BLACK;
 
     // Bresenham
     int dx = abs(x1 - x0);
@@ -126,14 +127,14 @@ void gfx_draw_line(
         if (dx >= dy) {
             for (int t = -r; t <= r; t++) {
                 int yy = by + t;
-                if (yy >= 0 && yy < g.height)
-                    g.buf[yy * g.width + bx] = color;
+                if (yy >= 0 && yy < height)
+                    (*buf)[yy * width + bx] = color;
             }
         } else {
             for (int t = -r; t <= r; t++) {
                 int xx = bx + t;
-                if (xx >= 0 && xx < g.width)
-                    g.buf[by * g.width + xx] = color;
+                if (xx >= 0 && xx < width)
+                    (*buf)[by * width + xx] = color;
             }
         }
 
@@ -152,10 +153,9 @@ void gfx_draw_line(
     esp_lcd_panel_draw_bitmap(
         panel,
         xmin, ymin,
-        xmin + g.width,
-        ymin + g.height,
-        g.buf
+        xmin + width,
+        ymin + height,
+        *buf
     );
 
-    // free(g.buf);
 }

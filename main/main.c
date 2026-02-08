@@ -85,7 +85,8 @@ void draw_hour_markers(uint16_t col)
         get_rect_point(radians, 120, 160, hwo, hho, &ox, &oy);
 
         int thickness = i == 0 ? 10 : 6;
-        gfx_draw_line(ix, iy, ox, oy, thickness, col);
+        uint16_t *b = NULL;
+        gfx_draw_line(ix, iy, ox, oy, thickness, col, &b);
     }
 }
 
@@ -105,13 +106,11 @@ void draw_minute_markers(uint16_t col)
             get_rect_point(radians, 120, 160, 105, 145, &ix, &iy);
             get_rect_point(radians, 120, 160, 110, 150, &ox, &oy);
     
-            gfx_draw_line(ix, iy, ox, oy, 1, col);
+            uint16_t *b = NULL;
+            gfx_draw_line(ix, iy, ox, oy, 1, col, &b);
         }
     }
 }
-
-
-
 
 
 void draw_borders(void)
@@ -123,17 +122,84 @@ void draw_borders(void)
         draw_minute_markers(col);
         draw_hour_markers(col);
 
-        gfx_draw_rect(0, 0, 5,319, col);
-        gfx_draw_rect(239, 0, 234, 319, col);
-        gfx_draw_rect(5, 0, 233, 5, col);
-        gfx_draw_rect(5, 314, 233, 319, col);
+        uint16_t *bu = NULL; uint16_t *bb = NULL; uint16_t *br = NULL; uint16_t *bl = NULL;
+
+        gfx_draw_rect(0, 0, 5,319, col, &bu);
+        gfx_draw_rect(239, 0, 234, 319, col, &bb);
+        gfx_draw_rect(5, 0, 233, 5, col, &br);
+        gfx_draw_rect(5, 314, 233, 319, col, &bl);
     
 }
 
 
-void clock (void)
+void rect_clock (void *arg)
 {
-    
+    draw_borders();
+
+    uint8_t hour = 0;
+    uint8_t minute = 0;
+    uint8_t second = 0;
+
+    float angle_per_tick = 6.0f;
+
+    uint16_t col = 0xFFFF;
+
+    bool first = true;
+    int spix, spiy, spox, spoy;
+    int mpix, mpiy, mpox, mpoy;
+    uint16_t *sec_b = NULL; uint16_t *prev_sec_b = NULL;
+    uint16_t *min_b = NULL; uint16_t *prev_min_b = NULL;
+    while(1)
+    {
+        if( !first )
+        {
+            free(sec_b); free(prev_sec_b);
+            free(min_b); free(prev_min_b);
+        }
+
+        if ( !first )
+        {
+            gfx_draw_line( spix, spiy, spox, spoy, 1, 0x0000, &prev_sec_b );
+            gfx_draw_line( mpix, mpiy, mpox, mpoy, 2, 0x0000, &prev_min_b );
+        }
+        else
+            first = false;
+
+        float sec_angle = second * angle_per_tick;
+        float sec_radians = sec_angle * (M_PI / 180.0f);
+        float min_angle = minute * angle_per_tick;
+        float min_radians = min_angle * (M_PI / 180.0f);
+
+        int sec_ix = 85; int sec_iy = 125; int sec_ox = 99; int sec_oy = 139;
+        int min_ix = 60; int min_iy = 100; int min_ox = 84; int min_oy = 124;
+
+        int six, siy, sox, soy;
+        int mix, miy, mox, moy;
+
+        get_rect_point(sec_radians, 120, 160, sec_ix, sec_iy, &six, &siy);
+        get_rect_point(sec_radians, 120, 160, sec_ox, sec_oy, &sox, &soy);
+        get_rect_point(min_radians, 120, 160, min_ix, min_iy, &mix, &miy);
+        get_rect_point(min_radians, 120, 160, min_ox, min_oy, &mox, &moy);
+
+
+        gfx_draw_line( six, siy, sox, soy, 1, col, &sec_b );
+        gfx_draw_line( mix, miy, mox, moy, 2, col, &min_b );
+
+
+
+        spix = six; spiy = siy; spox = sox; spoy = soy;
+        mpix = mix; mpiy = miy; mpox = mox; mpoy = moy;
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
+        if (second >= 59 )
+        {
+            minute = minute >= 60 ? 1 : minute + 1;
+        }
+        second = second >= 59 ? 0 : second + 1;
+ 
+    }
+
+
 }
 
 
@@ -193,6 +259,7 @@ void app_main(void)
 
     xTaskCreate(touch_task, "touch", 4096, NULL, 5, NULL);
 
-    draw_borders();
+
+    xTaskCreate(rect_clock, "clock", 4096, NULL, 1, NULL);
 
 }

@@ -9,22 +9,19 @@
 #include "driver/gpio.h"
 #include <string.h>
 
-typedef struct {
-    uint16_t *buf;
-    size_t width;
-    size_t height;
-    size_t size;
-} gfx_buffer_t;
 
 void gfx_draw_rect( int x0, int y0,
                     int x1, int y1,
-                    uint16_t color);
+                    uint16_t color,
+                    uint16_t **buf
+                );
 
 void gfx_draw_line(
     int x0, int y0,
     int x1, int y1,
     int thickness,
-    uint16_t color
+    uint16_t color,
+    uint16_t **buf
 );
 
 void gfx_clear(uint16_t color);
