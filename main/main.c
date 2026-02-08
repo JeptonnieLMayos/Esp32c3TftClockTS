@@ -72,11 +72,20 @@ void draw_hour_markers(uint16_t col)
         float radians   = angle_deg * (M_PI / 180.0f);
 
         int ix, iy, ox, oy;
+        
+        int hwi = (i == 0 || i == 6 ) ? 100 : 102;
+        int hwo = 110;
+        int hhi = ( i == 3 || i == 9 ) ? 140 : 142;
+        int hho = 150;
 
-        get_rect_point(radians, 120, 160, 100, 140, &ix, &iy);
-        get_rect_point(radians, 120, 160, 110, 150, &ox, &oy);
 
-        gfx_draw_line(ix, iy, ox, oy, 8, col);
+
+
+        get_rect_point(radians, 120, 160, hwi, hhi, &ix, &iy);
+        get_rect_point(radians, 120, 160, hwo, hho, &ox, &oy);
+
+        int thickness = i == 0 ? 10 : 6;
+        gfx_draw_line(ix, iy, ox, oy, thickness, col);
     }
 }
 
@@ -93,13 +102,16 @@ void draw_minute_markers(uint16_t col)
     
             int ix, iy, ox, oy;
     
-            get_rect_point(radians, 120, 160, 100, 140, &ix, &iy);
+            get_rect_point(radians, 120, 160, 105, 145, &ix, &iy);
             get_rect_point(radians, 120, 160, 110, 150, &ox, &oy);
     
-            gfx_draw_line(ix, iy, ox, oy, 2, col);
+            gfx_draw_line(ix, iy, ox, oy, 1, col);
         }
     }
 }
+
+
+
 
 
 void draw_borders(void)
@@ -108,18 +120,20 @@ void draw_borders(void)
     uint16_t col = 0xFFFF;
     // uint16_t col = 0x001F;
 
-        gfx_draw_rect(0, 0, 5,319, col);
-        gfx_draw_rect(239, 0, 234, 319, col);
-        gfx_draw_rect(6, 0, 233, 5, col);
-        gfx_draw_rect(6, 314, 233, 319, col);
-
         draw_minute_markers(col);
         draw_hour_markers(col);
+
+        gfx_draw_rect(0, 0, 5,319, col);
+        gfx_draw_rect(239, 0, 234, 319, col);
+        gfx_draw_rect(5, 0, 233, 5, col);
+        gfx_draw_rect(5, 314, 233, 319, col);
     
+}
+
+
+void clock (void)
+{
     
-
-
-
 }
 
 
