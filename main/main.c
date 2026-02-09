@@ -8,6 +8,7 @@
 #include "touch.h"
 #include "esp_log.h"
 #include <math.h>
+#include "clock_core.h"
 
 #define PIN_SCLK 4
 #define PIN_MISO 5
@@ -139,9 +140,11 @@ void rect_clock (void *arg)
 {
     draw_borders();
 
-    uint8_t hour = 0;
-    uint8_t minute = 0;
-    uint8_t second = 0;
+    clock_core_init();
+    clock_time_t now = clock_core_get();
+    uint8_t hour = now.hour % 12;
+    uint8_t minute = now.minute;
+    uint8_t second = now.second;
 
     float angle_per_tick = 6.0f;
     float radians = M_PI / 180.0f;
@@ -165,9 +168,12 @@ void rect_clock (void *arg)
     uint16_t *hour_b = NULL; uint16_t *prev_hour_b = NULL;
 
 
-    // adjust 
     while(1)
     {
+        now = clock_core_get();
+        hour = now.hour % 12;
+        minute = now.minute;
+        second = now.second;
         if( !first )
         {
             free(sec_b); free(prev_sec_b);
@@ -189,7 +195,7 @@ void rect_clock (void *arg)
         sec_angle = second * angle_per_tick;
         sec_radians = sec_angle * radians;
 
-        if (second == 0 || adjust != 0) // adjust
+        // if (second == 0 || adjust != 0) // adjust
         {
             min_angle = minute * angle_per_tick;
             min_radians = min_angle * radians;
@@ -229,32 +235,26 @@ void rect_clock (void *arg)
         if (adjust == 0) // adjust
         {
             delay = 1000;
-    
-            if (second >= 59 )
-            {
-                minute = minute >= 60 ? 1 : minute + 1; // 60 to 59
-            }
-            second = second >= 59 ? 0 : second + 1;
-            
-            if ( minute == 60 && second >= 59) // 60 to 59
-            {
-                hour = hour <= 11 ? 0 : hour + 1;
-            }
+            clock_core_tick();
         }
         else
         {
             if (adjust == 1 )
-                second = 0;
+            {
+                now.second = (second + 1) % 60;
+                delay = 100;
+            }
             if (adjust == 2 )
             {
-                minute = minute >= 59 ? 0 : minute + 1;
+                now.minute = (minute + 1) % 60;
                 delay = 250;
             }
             if (adjust == 3 )
             {
-                hour = hour >= 11 ? 0 : hour + 1;
+                now.hour = (hour + 1) % 12;
                 delay = 350;
             }
+            clock_core_set(now);
         }
 
         vTaskDelay(pdMS_TO_TICKS(delay));
