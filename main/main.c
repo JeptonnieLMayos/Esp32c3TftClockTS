@@ -195,7 +195,7 @@ void rect_clock (void *arg)
         sec_angle = second * angle_per_tick;
         sec_radians = sec_angle * radians;
 
-        // if (second == 0 || adjust != 0) // adjust
+        if (second == 0 || adjust != 0) // bug after adjust
         {
             min_angle = minute * angle_per_tick;
             min_radians = min_angle * radians;
