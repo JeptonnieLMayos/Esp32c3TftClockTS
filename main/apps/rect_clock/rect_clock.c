@@ -133,6 +133,34 @@ void rect_clock (void *arg)
 
     while(1)
     {
+
+        int delay = 1000;
+
+        if (adjust == 0)
+        {
+            delay = 1000;
+            clock_core_tick();
+        }
+        else
+        {
+            if (adjust == 1 )
+            {
+                now.second = (second + 1) % 60;
+                delay = 100;
+            }
+            if (adjust == 2 )
+            {
+                now.minute = (minute + 1) % 60;
+                delay = 250;
+            }
+            if (adjust == 3 )
+            {
+                now.hour = (hour + 1) % 12;
+                delay = 350;
+            }
+            clock_core_set(now);
+        }
+
         now = clock_core_get();
         hour = now.hour % 12;
         minute = now.minute;
@@ -191,32 +219,7 @@ void rect_clock (void *arg)
         mpix = mix; mpiy = miy; mpox = mox; mpoy = moy;
         hpix = hix; hpiy = hiy; hpox = hox; hpoy = hoy;
 
-        int delay = 1000;
 
-        if (adjust == 0)
-        {
-            delay = 1000;
-            clock_core_tick();
-        }
-        else
-        {
-            if (adjust == 1 )
-            {
-                now.second = (second + 1) % 60;
-                delay = 100;
-            }
-            if (adjust == 2 )
-            {
-                now.minute = (minute + 1) % 60;
-                delay = 250;
-            }
-            if (adjust == 3 )
-            {
-                now.hour = (hour + 1) % 12;
-                delay = 350;
-            }
-            clock_core_set(now);
-        }
 
         vTaskDelay(pdMS_TO_TICKS(delay));
  
