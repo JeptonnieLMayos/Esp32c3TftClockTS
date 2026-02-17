@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "clock_core.h"
 #include "rect_clock.h"
+#include "input.h"
 
 #define PIN_SCLK 4
 #define PIN_MISO 5
@@ -28,6 +29,7 @@ void init(void)
 
     graphics_init();
     touch_init();
+    input_init();
     
 }
 
@@ -55,28 +57,28 @@ static void touch_task(void *arg)
     while(1)
     {
 
-        if(touch_read(&tp))
-        {
-            if(tp.x < 120)
-            {
-                set_bl(tp.y);
-
-
-            }
-            else if (tp.x > 119)
-            {
-                if(tp.y < 100)
-                    adjust = 3;
-                else if (tp.y > 200)
-                    adjust = 1;
-                else
-                    adjust = 2;
-            }
+        // if(touch_read(&tp))
+        // {
+        //     if(tp.x < 120)
+        //     {
+        //         set_bl(tp.y);
+        //     }
+        //     else if (tp.x > 119)
+        //     {
+        //         if(tp.y < 100)
+        //             adjust = 3;
+        //         else if (tp.y > 200)
+        //             adjust = 1;
+        //         else
+        //             adjust = 2;
+        //     }
             
-        }
-        else
-            adjust = 0;
-    
+        // }
+        // else
+        //     adjust = 0;
+
+
+        input_update();
 
         int delay_ms = (touch_is_pressed()) ? 50 : 1000;
 

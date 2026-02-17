@@ -62,8 +62,10 @@ static int map(int v, int in_min, int in_max, int out_min, int out_max)
 
 bool touch_read(touch_point_t *p)
 {
-    if (touch_is_pressed != 0)
+    if (!touch_is_pressed())
         return false;
+
+    ESP_LOGI("t", "t");
 
     uint32_t sum_x = 0;
     uint32_t sum_y = 0;
@@ -71,8 +73,8 @@ bool touch_read(touch_point_t *p)
 
     for (uint8_t i = 0; i < samples; ++i)
     {
-        sum_x = read_cmd(touch_spi, 0xD0);
-        sum_y = read_cmd(touch_spi, 0x90);
+        sum_x += read_cmd(touch_spi, 0xD0);
+        sum_y += read_cmd(touch_spi, 0x90);
 
     }
 
@@ -89,7 +91,6 @@ bool touch_read(touch_point_t *p)
 
 bool touch_is_pressed(void)
 {
-    ESP_LOGI("t", "t");
     return gpio_get_level(TOUCH_IRQ_GPIO) == 0;
 
 }
