@@ -1,4 +1,5 @@
 #pragma once
+#include <stdlib.h>
 #include "touch.h"
 
 typedef enum {

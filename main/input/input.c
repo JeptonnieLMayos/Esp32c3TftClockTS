@@ -6,12 +6,28 @@ static gesture_t state;
 static bool touching = false;
 static touch_point_t start;
 static touch_point_t end;
+static uint8_t dsc = 0;
+
 
 void det(void)
 {
     int x = end.x - start.x;
     int y = end.y - start.y;
-    ESP_LOGI("TOU", "x: %d | y: %d", x, y);
+    if(abs(x) > abs(y))
+    {
+        if(x > 10)
+            state = GESTURE_SWIPE_DOWN;
+        if(x < -10)
+            state = GESTURE_SWIPE_UP;
+    }
+    else if(abs(y) > abs(x))
+    {
+        if(y > 10)
+            state = GESTURE_SWIPE_LEFT;
+        if(y < -10)
+            state = GESTURE_SWIPE_RIGHT;
+    }
+    ESP_LOGI("TOU", " %d", state);
 }
 
 void input_init(void)

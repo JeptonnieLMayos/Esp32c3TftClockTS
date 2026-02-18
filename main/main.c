@@ -80,7 +80,7 @@ static void touch_task(void *arg)
 
         input_update();
 
-        int delay_ms = (touch_is_pressed()) ? 50 : 1000;
+        int delay_ms = 100;
 
         
         vTaskDelay(pdMS_TO_TICKS(delay_ms));
