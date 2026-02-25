@@ -1,0 +1,10 @@
+#define PIN_SCLK 4
+#define PIN_MISO 5
+#define PIN_MOSI 6 
+#define TOUCH_IRQ_GPIO 0
+#define TOUCH_CS       20
+#define PIN_TFT_BL 1
+#define PIN_TFT_CS 7
+#define PIN_TFT_DC 8
+#define PIN_TFT_RST 9
+

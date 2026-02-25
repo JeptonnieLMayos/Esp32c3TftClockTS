@@ -10,10 +10,14 @@
 #include "clock_core.h"
 #include "rect_clock.h"
 #include "input.h"
+#include "temphumid.h"
 
 #define PIN_SCLK 4
 #define PIN_MISO 5
 #define PIN_MOSI 6 
+
+#define PIN_SDA 2
+#define PIN_SCL 3
 
 void init(void)
 {
@@ -30,7 +34,22 @@ void init(void)
     graphics_init();
     touch_init();
     input_init();
-    
+
+    i2c_config_t conf = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = PIN_SDA,
+        .scl_io_num = PIN_SCL,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = 100000
+    };
+
+    i2c_param_config(I2C_NUM_0, &conf);
+    i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0);
+
+    temphumid_init(I2C_NUM_0, 0x44);
+
+
 }
 
 
@@ -50,42 +69,27 @@ void set_bl(uint16_t y)
 
 }
 
-static void touch_task(void *arg)
+static void thtask(void *arg)
 {
-    touch_point_t tp;
+    temphumid_data_t th;
 
     while(1)
     {
-
-        // if(touch_read(&tp))
-        // {
-        //     if(tp.x < 120)
-        //     {
-        //         set_bl(tp.y);
-        //     }
-        //     else if (tp.x > 119)
-        //     {
-        //         if(tp.y < 100)
-        //             adjust = 3;
-        //         else if (tp.y > 200)
-        //             adjust = 1;
-        //         else
-        //             adjust = 2;
-        //     }
-            
-        // }
-        // else
-        //     adjust = 0;
-
-
-        input_update();
-
-        int delay_ms = 100;
-
-        
+        temphumid_read(&th);
+        ESP_LOGI("th", "%f | %f",th.temperature, th.humidity);
+        int delay_ms = 1000;
         vTaskDelay(pdMS_TO_TICKS(delay_ms));
     }
-    ESP_LOGI("t", "%d %d", tp.x, tp.y);
+}
+
+static void touch_task(void *arg)
+{
+    while(1)
+    {
+        input_update();
+        int delay_ms = 100;
+        vTaskDelay(pdMS_TO_TICKS(delay_ms));
+    }
 }
 
 void app_main(void)
@@ -97,5 +101,7 @@ void app_main(void)
 
 
     xTaskCreate(rect_clock, "clock", 4096, NULL, 1, NULL);
+
+    xTaskCreate(thtask, "th", 4096, NULL, 10, NULL);
 
 }
